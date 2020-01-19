@@ -13,15 +13,15 @@ public class Application {
     }
 
     private static final String SERVER_ADDRESS = "127.0.0.1";
-    private static final String SERVER_PORT = "6969";
-    boolean pressedQ = false;
-    Scanner scanner = new Scanner(System.in);
+    private static final int SERVER_PORT = 6969;
+    private boolean pressedQ = false;
+    private Scanner scanner = new Scanner(System.in);
 
-    public void run() throws IOException {
+    private void run() throws IOException {
 
         Socket socket;
 
-        socket = new Socket(SERVER_ADDRESS, Integer.parseInt(SERVER_PORT));
+        socket = new Socket(SERVER_ADDRESS, SERVER_PORT);
         InputStream inputStream = socket.getInputStream();
         OutputStream outputStream = socket.getOutputStream();
         PrintWriter writer = new PrintWriter(outputStream);
