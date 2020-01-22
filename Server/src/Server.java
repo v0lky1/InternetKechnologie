@@ -3,15 +3,15 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 
-public class Application {
+public class Server {
 
-    ServerSocket serverSocket;
+    private ServerSocket serverSocket;
     private static final int SERVER_PORT = 6969;
-    private ArrayList<MessageThread> connections;
+    private static ArrayList<MessageThread> connections;
 
     public static void main(String[] args) {
         try {
-            new Application().run();
+            new Server().run();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -41,4 +41,19 @@ public class Application {
             // TODO: Start a ping thread for each connecting client.
         }
     }
+
+    public static void sendBroadcastMessage(String sender, String message){
+        for (MessageThread connection: connections){
+            if (!connection.getUsername().equals(sender)){
+                connection.sendMessage(message);
+            }
+        }
+    }
+
+    public static void removeConnection(MessageThread thread){
+        thread.interrupt();
+        connections.remove(thread);
+    }
+
+
 }
