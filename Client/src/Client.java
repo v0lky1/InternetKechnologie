@@ -3,11 +3,15 @@ import java.net.Socket;
 import java.util.Scanner;
 
 public class Client {
+    private Scanner scanner = new Scanner(System.in);
+    private static final String SERVER_ADDRESS = "127.0.0.1";
+    private static final int SERVER_PORT = 6969;
 
     private ReceiveThread receiveThread;
     private SendThread sendThread;
     private boolean validUsername;
     private boolean waitForServer;
+    protected boolean pressedQ;
 
     public static void main(String[] args) {
         try {
@@ -17,16 +21,15 @@ public class Client {
         }
     }
 
-    private static final String SERVER_ADDRESS = "127.0.0.1";
-    private static final int SERVER_PORT = 6969;
-    private boolean pressedQ = false;
-    private Scanner scanner = new Scanner(System.in);
 
     private void run() throws IOException {
-
+        pressedQ = false;
         Socket socket;
 
         socket = new Socket(SERVER_ADDRESS, SERVER_PORT);
+
+        waitForServer = true;
+        validUsername = false;
 
         receiveThread = new ReceiveThread(this, socket);
         receiveThread.start();
@@ -34,94 +37,45 @@ public class Client {
         sendThread = new SendThread(this, socket);
         sendThread.start();
 
-        waitForServer = false;
-        String finalUsername;
-        validUsername = false;
 
         while (!validUsername) {
             if (!waitForServer) {
                 String username = setUsername();
-                sendThread.sendMessage("HELO " + username);
                 waitForServer = true;
+                sendThread.sendMessage("HELO " + username);
             }
         }
 
         System.out.println("Username OK, go send your messages!");
-        while (!pressedQ){
-            // STUUR BERICHTEN
-        }
+        while (!pressedQ) {
 
-//
-//        Thread receiveThread = new Thread(() -> {
-//            while (!pressedQ) {
-//
-//                String line = null;
-//                try {
-//                    line = reader.readLine();
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                }
-//
-//                assert line != null;
-//
-//                if (line.contains("PING")) {
-//                    writer.println("PONG");
-//
-//                }
-//
-//                if (!validUsername){
-//
-//                } else{
-//                    if (line.startsWith("BCST")) {
-//                        String[] stringElements = line.split(" ", 3);
-//
-//                        String sender = stringElements[1];
-//                        sender = sender.replace("[", "").replace("]", "");
-//
-//                        String message = stringElements[2];
-//                        System.out.println(sender + ": " + message);
-//                    }
-//                }
-//
-//
-//                writer.flush();
-//            }
-//        });
-//
-//        receiveThread.start();
-//
-//        Thread sendThread = new Thread(() -> {
-//
-//            System.out.println("Send Q to disconnect from the server.");
-//            while (!pressedQ) {
-//                String input = scanner.nextLine();
-//                if (input.equalsIgnoreCase("q")) {
-//                    pressedQ = true;
-//                    writer.println("QUIT");
-//                } else {
-//                    writer.println("BCST " + input);
-//                }
-//                writer.flush();
-//            }
-//        });
-//        sendThread.start();
-//    }
+            String message = scanner.nextLine();
+
+            if (message.startsWith("/")) {
+                //removing the / because we know a command has been given
+                //and we're in this if
+                message = message.substring(1);
+                //limit 2 because this would always we force the user
+                //to type command " " parameter.
+                String[] command = message.split(" ", 2);
+
+                //forcing uppercase so we dont have to deal with
+                //lower case examples
+                switch (command[0].toUpperCase()) {
+                    case "Q":
+                        sendThread.sendMessage("QUIT");
+                        pressedQ = true;
+                        break;
+                }
+            } else {
+                sendThread.sendMessage("BCST " + message);
+            }
+        }
     }
 
     private String setUsername() {
         System.out.print("Enter your preferred username: ");
-//        boolean usernameCorrect = false;
-//
-//        while (!usernameCorrect) {
-//            System.out.print("Enter your preferred username: ");
-//            username = scanner.nextLine();
-//            if (username.matches("[A-Za-z0-9_]+")) {
-//                usernameCorrect = true;
-//
-//            } else {
-//                System.out.println("That's not quite right! Try again (username can only contain alphanumeric characters and underscores)");
-//            }
-//        }
+
         return scanner.nextLine();
     }
 

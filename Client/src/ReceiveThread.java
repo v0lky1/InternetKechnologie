@@ -25,7 +25,7 @@ public class ReceiveThread extends Thread {
         }
         reader = new BufferedReader(new InputStreamReader(inputStream));
 
-        while (true) {
+        while (!client.pressedQ) {
             try {
                 line = reader.readLine();
             } catch (IOException e) {
@@ -46,6 +46,10 @@ public class ReceiveThread extends Thread {
         String[] incomingMessage = line.split(" ", 2);
 
         switch (incomingMessage[0]){
+            case "HELO":
+                client.setWaitForServer(false);
+                break;
+
             case "+OK":
                 handleOkMessages(incomingMessage[1]);
                 break;
@@ -58,12 +62,15 @@ public class ReceiveThread extends Thread {
             case "PING":
                 client.pingReceived();
                 break;
+
+            case "BCST":
+                System.out.println(incomingMessage[1]);
         }
     }
 
     public void handleOkMessages(String line){
         System.out.println(line);
-        if (!client.hasValidUsername()){
+        if (line.startsWith("HELO")){
             client.setValidUsername(true);
             client.setWaitForServer(true);
         }
@@ -71,7 +78,7 @@ public class ReceiveThread extends Thread {
 
     public void handleErrorMessages(String line){
         System.out.println(client.hasValidUsername());
-        if (!client.hasValidUsername()){
+        if (line.startsWith("HELO")){
             client.setWaitForServer(false);
         }
     }

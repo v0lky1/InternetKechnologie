@@ -52,13 +52,13 @@ public class MessageThread extends Thread {
             switch(incomingMessage[0]){
                 case "HELO":
                     this.username = incomingMessage[1];
-                    this.sendMessage("+OK HELO " + this.username);
+                    sendMessage("+OK HELO " + username);
                     break;
 
                 case "BCST":
-                    String message = "BCST " + this.username + " " + incomingMessage[1];
+                    String message = "BCST [" + username + "] " + incomingMessage[1];
                     System.out.println(">> " + message);
-                    Server.sendBroadcastMessage(this.username, message);
+                    Server.sendBroadcastMessage(username, message);
                     break;
 
                 case "QUIT":
