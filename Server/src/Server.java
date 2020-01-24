@@ -25,7 +25,7 @@ public class Server {
         while (true) {
             // Wait for an incoming client-connection request (blocking).
             Socket socket = serverSocket.accept();
-            MessageThread mt = new MessageThread(socket);
+            MessageThread mt = new MessageThread(this, socket);
             connections.add(mt);
 
             // Message processing thread
@@ -42,7 +42,7 @@ public class Server {
         }
     }
 
-    public static void sendBroadcastMessage(String sender, String message){
+    public void sendBroadcastMessage(String sender, String message){
         for (MessageThread connection: connections){
             if (!connection.getUsername().equals(sender)){
                 connection.sendMessage(message);
@@ -50,7 +50,7 @@ public class Server {
         }
     }
 
-    public static void removeConnection(MessageThread thread){
+    public void removeConnection(MessageThread thread){
         thread.interrupt();
         connections.remove(thread);
     }

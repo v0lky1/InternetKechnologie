@@ -42,7 +42,7 @@ public class ReceiveThread extends Thread {
     }
 
     public void handleIncomingMessage(String line){
-        System.out.println(line);
+        System.out.println("INCOMING MESSAGE: " + line);
         String[] incomingMessage = line.split(" ", 2);
 
         switch (incomingMessage[0]){
@@ -69,7 +69,6 @@ public class ReceiveThread extends Thread {
     }
 
     public void handleOkMessages(String line){
-        System.out.println(line);
         if (line.startsWith("HELO")){
             client.setValidUsername(true);
             client.setWaitForServer(true);
@@ -77,7 +76,6 @@ public class ReceiveThread extends Thread {
     }
 
     public void handleErrorMessages(String line){
-        System.out.println(client.hasValidUsername());
         if (line.startsWith("HELO")){
             client.setWaitForServer(false);
         }

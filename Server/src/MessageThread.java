@@ -8,10 +8,12 @@ public class MessageThread extends Thread {
     private OutputStream outputStream;
     private PrintWriter writer;
     private BufferedReader reader;
+    private Server server;
 
     private String username;
 
-    public MessageThread(Socket socket) throws IOException {
+    public MessageThread(Server server, Socket socket) throws IOException {
+        this.server = server;
         this.socket = socket;
         this.inputStream = socket.getInputStream();
         this.outputStream = socket.getOutputStream();
@@ -28,7 +30,7 @@ public class MessageThread extends Thread {
         writer.println(sb.toString());
         writer.flush();
 
-        while(true) {
+        while (true) {
             int splitLimit = 3;
 
             String line = null;
@@ -39,65 +41,66 @@ public class MessageThread extends Thread {
                 e.printStackTrace();
             }
 
-            assert line != null;
+            if (line != null) {
 
-            System.out.println("<< " + line);
+                System.out.println("INC " + line);
 
-            if(line.startsWith("HELO") || line.startsWith("BCST")){
-                splitLimit = 2;
-            }
+                if (line.startsWith("HELO") || line.startsWith("BCST")) {
+                    splitLimit = 2;
+                }
 
-            String[] incomingMessage = line.split(" ", splitLimit);
+                String[] incomingMessage = line.split(" ", splitLimit);
 
-            switch(incomingMessage[0]){
-                case "HELO":
-                    this.username = incomingMessage[1];
-                    sendMessage("+OK HELO " + username);
-                    break;
+                switch (incomingMessage[0]) {
+                    case "HELO":
+                        this.username = incomingMessage[1];
+                        sendMessage("+OK HELO " + username);
+                        break;
 
-                case "BCST":
-                    String message = "BCST [" + username + "] " + incomingMessage[1];
-                    System.out.println(">> " + message);
-                    Server.sendBroadcastMessage(username, message);
-                    break;
+                    case "BCST":
+                        String message = "BCST [" + username + "] " + incomingMessage[1];
+                        System.out.println("OUT " + message);
+                        server.sendBroadcastMessage(username, message);
+                        break;
 
-                case "QUIT":
-                    sendMessage("+ OK Goodbye");
-                    try {
-                        socket.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    Server.removeConnection(this);
-                    break;
+                    case "QUIT":
+                        sendMessage("+ OK Goodbye");
+                        try {
+                            socket.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        server.removeConnection(this);
+                        break;
 
-                case "RQST":
-                    break;
+                    case "RQST":
+                        break;
 
-                case "DM":
-                    break;
+                    case "DM":
+                        break;
 
-                case "MAKE":
-                    break;
+                    case "MAKE":
+                        break;
 
-                case "JOIN":
-                    break;
+                    case "JOIN":
+                        break;
 
-                case "GRPMSG":
-                    break;
+                    case "GRPMSG":
+                        break;
 
-                case "LEAVE":
-                    break;
+                    case "LEAVE":
+                        break;
 
-                case "PONG":
-                    // Check time we sent the ping
-                    // if within 3 seconds, all good.
-                    // else drop everything.
-                    break;
+                    case "PONG":
+                        // Check time we sent the ping
+                        // if within 3 seconds, all good.
+                        // else drop everything.
+                        break;
 
-                default:
-                    break;
+                    default:
+                        break;
 
+                }
             }
         }
     }
@@ -106,7 +109,8 @@ public class MessageThread extends Thread {
         return username;
     }
 
-    public void sendMessage(String message){
+    public void sendMessage(String message) {
+        System.out.println("OUT" + message);
         writer.println(message);
         writer.flush();
     }
