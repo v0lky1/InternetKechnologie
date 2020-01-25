@@ -9,9 +9,7 @@ public class ClientThread extends Thread {
     private PrintWriter writer;
     private BufferedReader reader;
     private Server server;
-
-
-    private String username;
+    private User user;
 
     public ClientThread(Server server, Socket socket) throws IOException {
         this.server = server;
@@ -31,7 +29,7 @@ public class ClientThread extends Thread {
         writer.println(sb.toString());
         writer.flush();
 
-        while (true) {
+        while (!user.isDisconnect()) {
             int splitLimit = 3;
 
             String line = null;
@@ -44,7 +42,7 @@ public class ClientThread extends Thread {
 
             if (line != null) {
 
-                System.out.println("INC " + line);
+                System.out.println("IN " + user + " " + line);
 
                 if (line.startsWith("HELO") || line.startsWith("BCST")) {
                     splitLimit = 2;
@@ -54,14 +52,14 @@ public class ClientThread extends Thread {
 
                 switch (incomingMessage[0]) {
                     case "HELO":
-                        this.username = incomingMessage[1];
-                        sendMessage("+OK HELO " + username);
+                        user.setUsername(incomingMessage[1]);
+                        sendMessage("+OK HELO " + user.getUsername());
                         break;
 
                     case "BCST":
-                        String message = "BCST [" + username + "] " + incomingMessage[1];
+                        String message = "BCST [" + user.getUsername() + "] " + incomingMessage[1];
                         System.out.println("OUT " + message);
-                        server.sendBroadcastMessage(username, message);
+                        server.sendBroadcastMessage(user.getUsername(), message);
                         break;
 
                     case "QUIT":
@@ -71,7 +69,7 @@ public class ClientThread extends Thread {
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
-                        //todo: delete user
+                        user.disconnect();
                         break;
 
                     case "RQST":
@@ -93,7 +91,7 @@ public class ClientThread extends Thread {
                         break;
 
                     case "PONG":
-                        //todo pong received
+                        user.getPingThread().pongReceived();
                         break;
 
                     default:
@@ -104,13 +102,13 @@ public class ClientThread extends Thread {
         }
     }
 
-    public String getUsername() {
-        return username;
-    }
-
     public void sendMessage(String message) {
-        System.out.println("OUT" + message);
+        System.out.println("OUT " + message + " " + user);
         writer.println(message);
         writer.flush();
+    }
+
+    public void setUser(User user) {
+        this.user = user;
     }
 }
