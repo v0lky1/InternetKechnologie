@@ -1,7 +1,7 @@
 import java.io.*;
 import java.net.Socket;
 
-public class MessageThread extends Thread {
+public class ClientThread extends Thread {
 
     private Socket socket;
     private InputStream inputStream;
@@ -10,9 +10,10 @@ public class MessageThread extends Thread {
     private BufferedReader reader;
     private Server server;
 
+
     private String username;
 
-    public MessageThread(Server server, Socket socket) throws IOException {
+    public ClientThread(Server server, Socket socket) throws IOException {
         this.server = server;
         this.socket = socket;
         this.inputStream = socket.getInputStream();
@@ -70,7 +71,7 @@ public class MessageThread extends Thread {
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
-                        server.removeConnection(this);
+                        //todo: delete user
                         break;
 
                     case "RQST":
@@ -92,9 +93,7 @@ public class MessageThread extends Thread {
                         break;
 
                     case "PONG":
-                        // Check time we sent the ping
-                        // if within 3 seconds, all good.
-                        // else drop everything.
+                        //todo pong received
                         break;
 
                     default:
